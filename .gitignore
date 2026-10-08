@@ -1,0 +1,14 @@
+﻿# Entorno virtual de Python
+.venv/
+venv/
+
+# Archivos temporales de Python
+__pycache__/
+*.pyc
+
+# Archivos temporales de pytest
+.pytest_cache/
+
+# Archivos del sistema y editor
+.DS_Store
+Thumbs.db
