@@ -74,10 +74,18 @@ def preparar_pasos(ruta, movimientos):
 
 def preparar_metricas(resultado):
     """Selecciona las métricas que se mostrarán en la interfaz."""
+    # Anchura almacena los estados en una cola y profundidad en una pila.
+    if "maximo_cola" in resultado:
+        nombre_maximo = "Máximo tamaño de la cola"
+        maximo = resultado["maximo_cola"]
+    else:
+        nombre_maximo = "Máximo tamaño de la pila"
+        maximo = resultado["maximo_pila"]
+
     return {
         "Solución encontrada": resultado["encontrado"],
         "Nodos visitados": resultado["nodos_visitados"],
-        "Máximo tamaño de la pila": resultado["maximo_pila"],
+        nombre_maximo: maximo,
         "Costo de búsqueda": resultado["costo_busqueda"],
         "Costo de ruta": resultado["costo_ruta"],
         "Costo total": resultado["costo_total"],

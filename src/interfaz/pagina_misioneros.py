@@ -4,6 +4,7 @@ import time
 
 import streamlit as st
 
+from src.algoritmos.anchura import busqueda_anchura
 from src.algoritmos.profundidad import busqueda_profundidad
 from src.problemas.misioneros.visualizacion import (
     preparar_metricas,
@@ -11,8 +12,15 @@ from src.problemas.misioneros.visualizacion import (
 )
 
 
+# Métodos de búsqueda disponibles para resolver el problema.
+METODOS = {
+    "Búsqueda en anchura": busqueda_anchura,
+    "Búsqueda en profundidad": busqueda_profundidad,
+}
+
+
 def mostrar_pagina_misioneros():
-    """Muestra la solución obtenida mediante profundidad."""
+    """Muestra la solución obtenida mediante el método seleccionado."""
 
     st.title("Misioneros y Caníbales")
 
@@ -24,7 +32,12 @@ def mostrar_pagina_misioneros():
         """
     )
 
-    st.write("Método utilizado: búsqueda en profundidad")
+    metodo = st.selectbox(
+        "Método de búsqueda",
+        list(METODOS),
+    )
+
+    st.write(f"Método utilizado: {metodo.lower()}")
     st.write("Estado inicial: (3, 3, I)")
     st.write("Estado meta: (0, 0, D)")
 
@@ -42,7 +55,7 @@ def mostrar_pagina_misioneros():
         )
 
     if st.button("Ejecutar búsqueda"):
-        resultado = busqueda_profundidad()
+        resultado = METODOS[metodo]()
 
         if resultado["encontrado"]:
             st.success("Se encontró una solución.")
