@@ -18,6 +18,12 @@ class EstadoPacman:
     terminado: bool = False
     victoria: bool = False
 
+    # Últimas 40 posiciones visitadas por Pac-Man.
+    historial: tuple[Posicion, ...] = ()
+
+    # Turnos consecutivos sin recoger puntos.
+    turnos_sin_puntos: int = 0
+
 
 class ProblemaPacman:
     PUNTOS_NORMAL = 10
@@ -34,14 +40,18 @@ class ProblemaPacman:
             puntos_poder=frozenset(self.laberinto.puntos_poder),
         )
 
-    def movimientos_pacman(self, estado: EstadoPacman) -> dict[str, Posicion]:
+    def movimientos_pacman(
+        self, estado: EstadoPacman
+    ) -> dict[str, Posicion]:
         if estado.terminado:
             return {}
 
         return self.laberinto.movimientos_validos(estado.pacman)
 
     def movimientos_fantasma(
-        self, estado: EstadoPacman, indice: int = 0
+        self,
+        estado: EstadoPacman,
+        indice: int = 0,
     ) -> dict[str, Posicion]:
         if estado.terminado:
             return {}
@@ -51,26 +61,46 @@ class ProblemaPacman:
         )
 
     def mover_pacman(
-        self, estado: EstadoPacman, direccion: str
+        self,
+        estado: EstadoPacman,
+        direccion: str,
     ) -> EstadoPacman:
+
         movimientos = self.movimientos_pacman(estado)
 
         if direccion not in movimientos:
-            raise ValueError(f"Movimiento no permitido: {direccion}")
+            raise ValueError(
+                f"Movimiento no permitido: {direccion}"
+            )
 
         nueva_posicion = movimientos[direccion]
+
         puntos = set(estado.puntos)
         puntos_poder = set(estado.puntos_poder)
         puntuacion = estado.puntuacion
 
+        # Recoger puntos normales.
         if nueva_posicion in puntos:
             puntos.remove(nueva_posicion)
             puntuacion += self.PUNTOS_NORMAL
 
+        # Recoger puntos de poder.
         if nueva_posicion in puntos_poder:
             puntos_poder.remove(nueva_posicion)
             puntuacion += self.PUNTOS_PODER
 
+        # Actualizar los turnos consecutivos sin puntos.
+        if puntuacion > estado.puntuacion:
+            turnos_sin_puntos = 0
+        else:
+            turnos_sin_puntos = estado.turnos_sin_puntos + 1
+
+        # Guardar las últimas 40 posiciones anteriores.
+        historial = (
+            estado.historial + (estado.pacman,)
+        )[-40:]
+
+        # Crear el nuevo estado.
         nuevo = replace(
             estado,
             pacman=nueva_posicion,
@@ -78,12 +108,24 @@ class ProblemaPacman:
             puntos_poder=frozenset(puntos_poder),
             puntuacion=puntuacion,
             turnos=estado.turnos + 1,
+            historial=historial,
+            turnos_sin_puntos=turnos_sin_puntos,
         )
 
+        # Comprobar colisiones con los fantasmas.
         nuevo = self._resolver_colision(nuevo)
 
-        if not nuevo.terminado and not nuevo.puntos and not nuevo.puntos_poder:
-            nuevo = replace(nuevo, terminado=True, victoria=True)
+        # Comprobar si Pac-Man recogió todos los puntos.
+        if (
+            not nuevo.terminado
+            and not nuevo.puntos
+            and not nuevo.puntos_poder
+        ):
+            nuevo = replace(
+                nuevo,
+                terminado=True,
+                victoria=True,
+            )
 
         return nuevo
 
@@ -93,23 +135,38 @@ class ProblemaPacman:
         direccion: str,
         indice: int = 0,
     ) -> EstadoPacman:
-        movimientos = self.movimientos_fantasma(estado, indice)
+
+        movimientos = self.movimientos_fantasma(
+            estado, indice
+        )
 
         if direccion not in movimientos:
-            raise ValueError(f"Movimiento no permitido: {direccion}")
+            raise ValueError(
+                f"Movimiento no permitido: {direccion}"
+            )
 
         fantasmas = list(estado.fantasmas)
         fantasmas[indice] = movimientos[direccion]
 
-        nuevo = replace(estado, fantasmas=tuple(fantasmas))
+        nuevo = replace(
+            estado,
+            fantasmas=tuple(fantasmas),
+        )
+
         return self._resolver_colision(nuevo)
 
-    def _resolver_colision(self, estado: EstadoPacman) -> EstadoPacman:
+    def _resolver_colision(
+        self,
+        estado: EstadoPacman,
+    ) -> EstadoPacman:
+
+        # No existe colisión.
         if estado.pacman not in estado.fantasmas:
             return estado
 
         vidas_restantes = estado.vidas - 1
 
+        # Pac-Man pierde su última vida.
         if vidas_restantes <= 0:
             return replace(
                 estado,
@@ -118,9 +175,14 @@ class ProblemaPacman:
                 victoria=False,
             )
 
+        # Pac-Man pierde una vida y vuelve al inicio.
         return replace(
             estado,
             pacman=self.laberinto.pacman_inicio,
-            fantasmas=tuple(self.laberinto.fantasmas_inicio),
+            fantasmas=tuple(
+                self.laberinto.fantasmas_inicio
+            ),
             vidas=vidas_restantes,
+            historial=(),
+            turnos_sin_puntos=0,
         )

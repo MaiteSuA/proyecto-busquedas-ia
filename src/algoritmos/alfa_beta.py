@@ -42,12 +42,12 @@ def buscar_alfa_beta(
         nodos += 1
 
         if actual.terminado or restante == 0:
-            return evaluar_estado(actual)
+            return evaluar_estado(actual, juego.laberinto)
 
         movimientos = juego.movimientos_pacman(actual)
 
         if not movimientos:
-            return evaluar_estado(actual)
+            return evaluar_estado(actual, juego.laberinto)
 
         mejor = float("-inf")
 
@@ -74,7 +74,7 @@ def buscar_alfa_beta(
         nodos += 1
 
         if actual.terminado:
-            return evaluar_estado(actual)
+            return evaluar_estado(actual, juego.laberinto)
 
         movimientos = juego.movimientos_fantasma(actual)
 
@@ -98,14 +98,20 @@ def buscar_alfa_beta(
 
     if estado.terminado:
         return ResultadoAlfaBeta(
-            None, evaluar_estado(estado), 0, 0
+            None,
+            evaluar_estado(estado, juego.laberinto),
+            0,
+            0,
         )
 
     movimientos = juego.movimientos_pacman(estado)
 
     if not movimientos:
         return ResultadoAlfaBeta(
-            None, evaluar_estado(estado), 0, 0
+            None,
+            evaluar_estado(estado, juego.laberinto),
+            0,
+            0,
         )
 
     mejor_movimiento = None
@@ -115,7 +121,12 @@ def buscar_alfa_beta(
 
     for direccion in movimientos:
         siguiente = juego.mover_pacman(estado, direccion)
-        valor = min_valor(siguiente, profundidad, alfa, beta)
+        valor = min_valor(
+            siguiente,
+            profundidad,
+            alfa,
+            beta,
+        )
 
         if valor > mejor_valor:
             mejor_valor = valor

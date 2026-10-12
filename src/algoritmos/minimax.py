@@ -35,12 +35,12 @@ def buscar_minimax(
         nodos += 1
 
         if actual.terminado or restante == 0:
-            return evaluar_estado(actual)
+            return evaluar_estado(actual, juego.laberinto)
 
         movimientos = juego.movimientos_pacman(actual)
 
         if not movimientos:
-            return evaluar_estado(actual)
+            return evaluar_estado(actual, juego.laberinto)
 
         mejor = float("-inf")
 
@@ -56,7 +56,7 @@ def buscar_minimax(
         nodos += 1
 
         if actual.terminado:
-            return evaluar_estado(actual)
+            return evaluar_estado(actual, juego.laberinto)
 
         movimientos = juego.movimientos_fantasma(actual)
 
@@ -73,12 +73,20 @@ def buscar_minimax(
         return peor
 
     if estado.terminado:
-        return ResultadoMinimax(None, evaluar_estado(estado), 0)
+        return ResultadoMinimax(
+            None,
+            evaluar_estado(estado, juego.laberinto),
+            0,
+        )
 
     movimientos = juego.movimientos_pacman(estado)
 
     if not movimientos:
-        return ResultadoMinimax(None, evaluar_estado(estado), 0)
+        return ResultadoMinimax(
+            None,
+            evaluar_estado(estado, juego.laberinto),
+            0,
+        )
 
     mejor_movimiento = None
     mejor_valor = float("-inf")
