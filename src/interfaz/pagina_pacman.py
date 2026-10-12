@@ -9,7 +9,7 @@ from src.algoritmos.minimax import buscar_minimax
 from src.algoritmos.alfa_beta import buscar_alfa_beta
 from src.problemas.pacman.problema import ProblemaPacman
 from src.problemas.pacman.visualizacion import generar_svg
-
+from src.problemas.pacman.heuristica import distancia_laberinto
 
 def ejecutar_turno(juego, estado, algoritmo, profundidad):
     """Calcula una decisión de IA y mueve a los personajes."""
@@ -32,12 +32,13 @@ def ejecutar_turno(juego, estado, algoritmo, profundidad):
             if movimientos:
                 # El fantasma persigue a Pac-Man.
                 direccion_fantasma = min(
-                    movimientos,
-                    key=lambda direccion: (
-                        abs(movimientos[direccion][0] - estado.pacman[0])
-                        + abs(movimientos[direccion][1] - estado.pacman[1])
-                    ),
-                )
+    movimientos,
+    key=lambda direccion: distancia_laberinto(
+        juego.laberinto,
+        movimientos[direccion],
+        estado.pacman,
+    ),
+)
 
                 estado = juego.mover_fantasma(
                     estado, direccion_fantasma
@@ -56,7 +57,7 @@ def ejecutar_turno(juego, estado, algoritmo, profundidad):
 
 
 def mostrar_pagina_pacman():
-    st.title("🟡 Pac-Man — Inteligencia Artificial")
+    st.title("Pac-Man")
     st.caption("Búsqueda adversarial: Minimax y poda alfa-beta")
 
     if "pacman_juego" not in st.session_state:
